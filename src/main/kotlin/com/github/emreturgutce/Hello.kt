@@ -4,21 +4,23 @@ import kotlinx.coroutines.*
 
 fun main(args: Array<String>) = runBlocking {
 
-    val scope = CoroutineScope(Dispatchers.Default)
-    val start = System.currentTimeMillis()
+    val request = launch {
+        launch(Job()) {
+            println("execute independently")
+            delay(1000)
+            println("not affected")
+        }
 
-    fun showSomeData(scope: CoroutineScope) = scope.launch {
-        delay(500)
-        val end = System.currentTimeMillis()
-        println("Thread: ${Thread.currentThread().name} Time: ${end.minus(start)}ms")
+        launch {
+            delay(100)
+            println("child of the coroutine")
+            delay(1000)
+            println("will affect")
+        }
     }
 
-    val jobs = mutableListOf<Job>()
-
-    repeat(100) {
-        val job = showSomeData(scope)
-        jobs.add(job)
-    }
-
-    jobs.forEach { it.join() }
+    delay(500)
+    request.cancel()
+    delay(1100)
+    println("Finished")
 }
